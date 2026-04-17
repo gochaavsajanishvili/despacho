@@ -1,0 +1,2133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Despacho · Document Compression Bureau</title>
+<meta name="description" content="A quiet bureau that trims oversized passport scans, forms, and certificates into ministry-ready submissions. Runs in your browser; nothing uploaded.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif:ital,wght@0,400;0,600;1,400&family=Noto+Serif+Georgian:wght@400;500;700&family=Noto+Sans+Georgian:wght@400;600&family=Noto+Serif+SC:wght@400;600&display=swap">
+<style>
+  /* ────────────────────────────────────────────────────────────────
+     DESPACHO — a small document bureau
+     A single-file compression office.  All fixtures inline.
+     ──────────────────────────────────────────────────────────────── */
+
+  :root {
+    --paper:       #ece3d0;
+    --paper-warm:  #f1e8d5;
+    --paper-deep:  #ddd1b6;
+    --ink:         #15110c;
+    --ink-soft:    #3b2f22;
+    --ink-ghost:   #6b5b44;
+    --sepia:       #8a7961;
+    --sepia-light: #c4b59a;
+    --hair:        rgba(21, 17, 12, 0.14);
+    --hair-strong: rgba(21, 17, 12, 0.30);
+    --stamp:       #9e2b2b;
+    --stamp-dark:  #6b1a1a;
+    --stamp-faint: rgba(158, 43, 43, 0.12);
+    --seal:        #2d5b3d;
+    --highlight:   #c7a544;
+
+    --serif:   "Fraunces", "Noto Serif Georgian", "Noto Serif", "Noto Serif SC", "Georgia", serif;
+    --display: "Instrument Serif", "Noto Serif Georgian", "Noto Serif", "Noto Serif SC", "Didot", serif;
+    --mono:    "JetBrains Mono", "Noto Sans Georgian", "Noto Serif SC", "Courier New", monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--serif);
+    font-variation-settings: "opsz" 14, "SOFT" 50;
+    font-feature-settings: "ss01" on, "ss02" on, "onum" on;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.55;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Paper texture (SVG grain + soft radial warmth) ── */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background:
+      radial-gradient(ellipse at 20% 15%, rgba(241, 232, 213, 0.8), transparent 55%),
+      radial-gradient(ellipse at 85% 80%, rgba(221, 209, 182, 0.4), transparent 50%),
+      radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(21, 17, 12, 0.08));
+    mix-blend-mode: multiply;
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 200;
+    opacity: 0.42;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch' seed='7'/><feColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.065  0 0 0 0 0.04  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+  }
+
+  .page-frame {
+    position: fixed;
+    inset: 22px;
+    pointer-events: none;
+    z-index: 2;
+    border: 1px solid var(--hair);
+  }
+  .page-frame::before, .page-frame::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border: 1px solid var(--hair);
+  }
+  .page-frame::after {
+    inset: 2px;
+    border-width: 0.5px;
+    opacity: 0.5;
+  }
+
+  /* ────────────────────────────────────────────────────────────────
+     Masthead
+     ──────────────────────────────────────────────────────────────── */
+  .ticker {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 48px 0;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    color: var(--ink-ghost);
+    text-transform: uppercase;
+    position: relative;
+    z-index: 4;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .ticker .dots {
+    flex: 1;
+    border-bottom: 1px dotted var(--hair-strong);
+    transform: translateY(-3px);
+    min-width: 20px;
+  }
+  .ticker .right { display: flex; gap: 1.2em; align-items: center; }
+
+  /* Language switcher */
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--hair-strong);
+    background: rgba(241, 232, 213, 0.6);
+  }
+  .lang-switch button {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    background: transparent;
+    color: var(--ink-ghost);
+    border: none;
+    border-right: 1px solid var(--hair-strong);
+    padding: 4px 9px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.14s ease;
+    font-weight: 500;
+    min-width: 32px;
+    line-height: 1.2;
+  }
+  .lang-switch button:last-child { border-right: none; }
+  .lang-switch button:hover { color: var(--ink); background: rgba(196, 181, 154, 0.18); }
+  .lang-switch button.on {
+    color: var(--paper-warm);
+    background: var(--ink);
+    font-weight: 600;
+  }
+
+  .masthead {
+    text-align: center;
+    padding: 30px 48px 34px;
+    position: relative;
+    z-index: 3;
+    border-bottom: 1px solid var(--hair);
+  }
+
+  .kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.48em;
+    color: var(--stamp);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.9em;
+    font-weight: 500;
+  }
+  .kicker::before, .kicker::after {
+    content: "";
+    width: 32px; height: 1px;
+    background: var(--stamp);
+    opacity: 0.55;
+  }
+
+  .title {
+    font-family: var(--display);
+    font-size: clamp(72px, 14vw, 168px);
+    font-weight: 400;
+    letter-spacing: -0.025em;
+    line-height: 0.82;
+    color: var(--ink);
+    position: relative;
+    display: inline-block;
+  }
+  .title .tail {
+    font-style: italic;
+    color: var(--stamp);
+    font-size: 0.55em;
+    vertical-align: 0.55em;
+    margin-left: 0.05em;
+    letter-spacing: 0;
+  }
+
+  .tagline {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(18px, 2.2vw, 26px);
+    color: var(--ink-soft);
+    margin-top: 14px;
+    letter-spacing: 0.01em;
+  }
+  .tagline .flourish {
+    color: var(--stamp);
+    font-family: var(--serif);
+    font-style: normal;
+    margin: 0 0.6em;
+    font-weight: 300;
+  }
+
+  .masthead-meta {
+    display: flex;
+    justify-content: center;
+    gap: 2.5em;
+    margin-top: 20px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    color: var(--ink-ghost);
+    text-transform: uppercase;
+    flex-wrap: wrap;
+  }
+  .masthead-meta span + span::before {
+    content: "•";
+    margin-right: 2.5em;
+    margin-left: -1.25em;
+    opacity: 0.55;
+  }
+
+  .seal {
+    position: absolute;
+    top: 18px;
+    right: 48px;
+    width: 110px;
+    height: 110px;
+    opacity: 0.85;
+    transform: rotate(-8deg);
+    z-index: 4;
+  }
+  .seal svg { width: 100%; height: 100%; }
+
+  /* ────────────────────────────────────────────────────────────────
+     Bureau (drop zone + control panel)
+     ──────────────────────────────────────────────────────────────── */
+
+  main { position: relative; z-index: 3; padding: 56px 48px 48px; }
+
+  .bureau {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
+    gap: 48px;
+    max-width: 1340px;
+    margin: 0 auto;
+  }
+
+  .drop-zone {
+    position: relative;
+    display: block;
+    min-height: 460px;
+    background: linear-gradient(180deg, var(--paper-warm), var(--paper));
+    border: 1px solid var(--hair-strong);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+      0 1px 0 rgba(21, 17, 12, 0.05),
+      0 8px 24px -12px rgba(21, 17, 12, 0.25),
+      0 32px 60px -28px rgba(21, 17, 12, 0.2);
+  }
+
+  .drop-zone:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 1px 0 rgba(21, 17, 12, 0.06),
+      0 14px 32px -12px rgba(21, 17, 12, 0.28),
+      0 40px 80px -30px rgba(21, 17, 12, 0.22);
+  }
+
+  .drop-zone.dragging {
+    transform: translateY(-4px) rotate(-0.4deg);
+    background: linear-gradient(180deg, #f6ecd7, var(--paper-warm));
+    box-shadow:
+      0 1px 0 rgba(21, 17, 12, 0.08),
+      0 20px 40px -10px rgba(21, 17, 12, 0.4),
+      0 60px 100px -30px rgba(21, 17, 12, 0.28);
+  }
+
+  .corner {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    pointer-events: none;
+  }
+  .corner::before, .corner::after {
+    content: "";
+    position: absolute;
+    background: var(--ink-ghost);
+  }
+  .corner::before { width: 100%; height: 1px; top: 0; }
+  .corner::after { width: 1px; height: 100%; left: 0; }
+  .corner.tl { top: 14px; left: 14px; }
+  .corner.tr { top: 14px; right: 14px; transform: scaleX(-1); }
+  .corner.bl { bottom: 14px; left: 14px; transform: scaleY(-1); }
+  .corner.br { bottom: 14px; right: 14px; transform: scale(-1); }
+
+  .perforation {
+    position: absolute;
+    top: 0; bottom: 0; left: 32px;
+    width: 1px;
+    border-right: 1px dashed rgba(21, 17, 12, 0.16);
+    pointer-events: none;
+  }
+
+  .drop-content {
+    position: relative;
+    height: 100%;
+    min-height: 460px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 48px;
+    text-align: center;
+  }
+
+  .drop-content .envelope {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 24px;
+    color: var(--ink-soft);
+    opacity: 0.88;
+  }
+  .drop-content .envelope svg { width: 100%; height: 100%; }
+
+  .drop-heading {
+    font-family: var(--display);
+    font-size: clamp(36px, 4.5vw, 54px);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .drop-heading em {
+    font-style: italic;
+    color: var(--stamp);
+  }
+
+  .drop-body {
+    font-family: var(--serif);
+    font-size: 17px;
+    max-width: 440px;
+    color: var(--ink-soft);
+    margin-bottom: 26px;
+  }
+  .drop-body em { color: var(--ink); font-style: italic; }
+
+  .select-btn {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 14px 22px 13px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    position: relative;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  .select-btn:hover { background: var(--ink); color: var(--paper-warm); }
+  .select-btn::after {
+    content: "↳";
+    font-family: var(--serif);
+    letter-spacing: 0;
+    font-size: 15px;
+  }
+
+  .drop-hint {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    color: var(--ink-ghost);
+    text-transform: uppercase;
+    margin-top: 22px;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .drop-hint .dot { width: 4px; height: 4px; background: var(--seal); border-radius: 50%; flex-shrink: 0; }
+
+  #file-input { display: none; }
+
+  .stamp-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .stamp {
+    position: absolute;
+    width: 148px; height: 148px;
+    opacity: 0;
+    transform: scale(1.4) rotate(-14deg);
+    animation: stamp-drop 0.5s cubic-bezier(0.3, 0.9, 0.3, 1) forwards;
+  }
+  .stamp svg { width: 100%; height: 100%; }
+
+  @keyframes stamp-drop {
+    0%   { opacity: 0; transform: scale(1.8) rotate(-24deg); }
+    70%  { opacity: 1; transform: scale(0.92) rotate(-7deg); }
+    85%  { transform: scale(1.02) rotate(-9deg); }
+    100% { opacity: 0.78; transform: scale(1) rotate(-8deg); }
+  }
+
+  /* ── Orders panel ── */
+  .orders {
+    font-family: var(--serif);
+    padding-top: 2px;
+  }
+
+  .orders-head {
+    font-family: var(--display);
+    font-size: 26px;
+    line-height: 1;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-bottom: 1px solid var(--hair);
+    padding-bottom: 14px;
+  }
+  .orders-head .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--stamp);
+    text-transform: uppercase;
+    transform: translateY(-2px);
+    font-weight: 600;
+  }
+
+  .field { margin-bottom: 26px; }
+  .field-label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    color: var(--ink-ghost);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  .field-label .hint {
+    color: var(--sepia);
+    letter-spacing: 0.18em;
+    font-weight: 400;
+    margin-left: 0.5em;
+  }
+
+  .segments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border: 1px solid var(--hair-strong);
+    background: var(--paper-warm);
+  }
+  .segments button {
+    flex: 1 1 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--ink-soft);
+    border: none;
+    border-right: 1px solid var(--hair-strong);
+    padding: 12px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-weight: 500;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .segments button:last-child { border-right: none; }
+  .segments button:hover { background: var(--paper-deep); color: var(--ink); }
+  .segments button.on {
+    background: var(--ink);
+    color: var(--paper-warm);
+  }
+
+  .field-note {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-ghost);
+    margin-top: 8px;
+    line-height: 1.45;
+  }
+
+  .caveat {
+    margin-top: 34px;
+    padding: 18px 20px;
+    border-left: 2px solid var(--stamp);
+    background: rgba(158, 43, 43, 0.04);
+    font-family: var(--serif);
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    position: relative;
+  }
+  .caveat strong {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--stamp);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .caveat em { color: var(--ink); font-style: italic; }
+
+  /* ────────────────────────────────────────────────────────────────
+     Docket
+     ──────────────────────────────────────────────────────────────── */
+
+  .docket {
+    max-width: 1340px;
+    margin: 72px auto 0;
+    padding-top: 44px;
+    border-top: 1px solid var(--hair);
+    position: relative;
+  }
+  .docket::before {
+    content: "";
+    position: absolute;
+    top: -1px; left: 50%;
+    width: 32px; height: 3px;
+    background: var(--paper);
+    transform: translateX(-50%);
+  }
+  .docket::after {
+    content: "§";
+    position: absolute;
+    top: -15px; left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--display);
+    font-size: 22px;
+    color: var(--stamp);
+    line-height: 1;
+  }
+
+  .docket-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .docket-head h3 {
+    font-family: var(--display);
+    font-size: 42px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .docket-head h3 em { font-style: italic; color: var(--stamp); }
+  .docket-head .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--stamp);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .docket-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--ink-ghost);
+    text-transform: uppercase;
+    display: flex;
+    gap: 1.5em;
+    flex-wrap: wrap;
+  }
+  .docket-meta .value { color: var(--ink); font-weight: 600; }
+
+  .docket-list { list-style: none; border-top: 1px solid var(--hair-strong); }
+
+  .doc-row {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1.3fr) 140px 160px minmax(170px, 0.8fr);
+    gap: 16px;
+    align-items: center;
+    padding: 16px 6px;
+    border-bottom: 1px solid var(--hair);
+    position: relative;
+    font-family: var(--serif);
+  }
+  .doc-row:hover { background: rgba(241, 232, 213, 0.5); }
+  .doc-row.state-done { background: rgba(45, 91, 61, 0.04); }
+  .doc-row.state-err { background: rgba(158, 43, 43, 0.06); }
+
+  .doc-idx {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--ink-ghost);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .doc-name {
+    font-size: 16px;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .doc-name .type {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--ink-ghost);
+    text-transform: uppercase;
+    margin-right: 0.7em;
+    border: 1px solid var(--hair-strong);
+    padding: 2px 6px;
+    display: inline-block;
+    transform: translateY(-1px);
+    font-weight: 500;
+  }
+
+  .doc-size {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+  .doc-size .arrow { color: var(--sepia); margin: 0 0.4em; }
+  .doc-size .after { color: var(--ink); font-weight: 600; }
+  .doc-size .pct {
+    font-size: 10.5px;
+    color: var(--seal);
+    margin-left: 0.55em;
+    letter-spacing: 0.1em;
+  }
+  .doc-size .pct.over { color: var(--stamp); }
+
+  .doc-status {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-ghost);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    flex-wrap: wrap;
+  }
+  .doc-status.ok { color: var(--seal); }
+  .doc-status.err { color: var(--stamp); }
+  .doc-status.busy { color: var(--highlight); }
+  .doc-status .pip {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+    display: inline-block;
+  }
+  .doc-status.busy .pip { animation: pulse 0.9s infinite ease-in-out; }
+  @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+  .doc-bar {
+    height: 3px;
+    background: var(--hair);
+    position: relative;
+    overflow: hidden;
+  }
+  .doc-bar > span {
+    position: absolute;
+    top: 0; left: 0; height: 100%;
+    background: var(--ink);
+    transition: width 0.18s ease;
+    width: 0;
+  }
+  .state-done .doc-bar > span { background: var(--seal); width: 100% !important; }
+  .state-err  .doc-bar > span { background: var(--stamp); }
+
+  .doc-remove {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    color: var(--ink-ghost);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    text-transform: uppercase;
+    transition: color 0.15s;
+  }
+  .doc-remove:hover { color: var(--stamp); }
+
+  /* ────────────────────────────────────────────────────────────────
+     Dispatch
+     ──────────────────────────────────────────────────────────────── */
+
+  .dispatch-bar {
+    max-width: 1340px;
+    margin: 56px auto 32px;
+    padding: 40px 0 10px;
+    border-top: 1px solid var(--hair);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .dispatch-note {
+    max-width: 460px;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    line-height: 1.55;
+  }
+  .dispatch-note::before {
+    content: "¶";
+    font-family: var(--display);
+    font-style: normal;
+    color: var(--stamp);
+    margin-right: 0.45em;
+    font-size: 1.2em;
+  }
+  .dispatch-note #eta {
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--paper-warm);
+    padding: 1px 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .dispatch-btn {
+    position: relative;
+    font-family: var(--display);
+    font-size: 40px;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    color: var(--paper-warm);
+    background: var(--ink);
+    border: none;
+    padding: 22px 46px 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 20px;
+    min-width: 360px;
+    text-align: left;
+  }
+  .dispatch-btn:hover:not(:disabled) {
+    background: var(--stamp-dark);
+    transform: translateY(-1px);
+  }
+  .dispatch-btn:active:not(:disabled) { transform: translateY(0); }
+  .dispatch-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .dispatch-btn .label { flex: 1; line-height: 1; }
+  .dispatch-btn .sub {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--sepia-light);
+    margin-top: 7px;
+    font-weight: 500;
+  }
+  .dispatch-btn .arrow {
+    font-family: var(--serif);
+    font-size: 46px;
+    line-height: 0.7;
+    transition: transform 0.25s cubic-bezier(0.3, 0, 0.1, 1);
+  }
+  .dispatch-btn:hover:not(:disabled) .arrow { transform: translateX(6px); }
+
+  .dispatch-btn.busy .dot-spinner {
+    display: inline-block;
+    width: 10px; margin-left: 0.4em;
+    animation: blink 0.85s infinite;
+  }
+  @keyframes blink { 50% { color: transparent; } }
+
+  /* ────────────────────────────────────────────────────────────────
+     Footer
+     ──────────────────────────────────────────────────────────────── */
+
+  footer {
+    max-width: 1340px;
+    margin: 80px auto 0;
+    padding: 36px 48px 48px;
+    border-top: 1px solid var(--hair);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--ink-ghost);
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    position: relative;
+    z-index: 3;
+  }
+  footer em {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 16px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink);
+  }
+  footer a {
+    color: var(--stamp);
+    text-decoration: none;
+    border-bottom: 1px solid var(--stamp-faint);
+    padding-bottom: 2px;
+  }
+  footer a:hover { border-bottom-color: var(--stamp); }
+
+  /* Toasts */
+  .toast-wrap {
+    position: fixed;
+    top: 90px;
+    right: 48px;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--ink);
+    color: var(--paper-warm);
+    padding: 14px 22px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    border-left: 4px solid var(--stamp);
+    box-shadow: 0 12px 28px -10px rgba(21,17,12,0.5);
+    min-width: 240px;
+    animation: toast-in 0.3s cubic-bezier(0.3, 0, 0.2, 1);
+    pointer-events: auto;
+  }
+  .toast.good { border-left-color: var(--seal); }
+  .toast.warn { border-left-color: var(--highlight); }
+  .toast.out { animation: toast-out 0.4s forwards; }
+  @keyframes toast-in { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes toast-out { to { opacity: 0; transform: translateX(30px); } }
+
+  /* Entrance animations */
+  .reveal { opacity: 0; transform: translateY(14px); animation: reveal 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+  .reveal.d1 { animation-delay: 0.05s; }
+  .reveal.d2 { animation-delay: 0.18s; }
+  .reveal.d3 { animation-delay: 0.32s; }
+  .reveal.d4 { animation-delay: 0.5s; }
+  .reveal.d5 { animation-delay: 0.72s; }
+  @keyframes reveal { to { opacity: 1; transform: translateY(0); } }
+
+  /* ────────────────────────────────────────────────────────────────
+     Language-specific overrides
+     Georgian and Chinese don't benefit from letter-spacing / uppercase
+     ──────────────────────────────────────────────────────────────── */
+  :root[lang="ka"] .kicker,
+  :root[lang="ka"] .drop-hint,
+  :root[lang="ka"] .field-label,
+  :root[lang="ka"] .masthead-meta,
+  :root[lang="ka"] .ticker,
+  :root[lang="ka"] .doc-status,
+  :root[lang="ka"] .docket-meta,
+  :root[lang="ka"] .dispatch-btn .sub,
+  :root[lang="ka"] .caveat strong,
+  :root[lang="ka"] .select-btn,
+  :root[lang="ka"] .segments button,
+  :root[lang="ka"] .doc-remove,
+  :root[lang="ka"] .doc-name .type,
+  :root[lang="ka"] footer,
+  :root[lang="ka"] .toast {
+    text-transform: none;
+    letter-spacing: 0.06em;
+  }
+  :root[lang="ka"] .kicker { letter-spacing: 0.25em; }
+  :root[lang="ka"] .select-btn { letter-spacing: 0.14em; font-size: 12.5px; }
+  :root[lang="ka"] .segments button { font-size: 11.5px; letter-spacing: 0.05em; padding: 13px 8px; }
+  :root[lang="ka"] .lang-switch button { letter-spacing: 0.08em; }
+
+  :root[lang="zh"] .kicker,
+  :root[lang="zh"] .drop-hint,
+  :root[lang="zh"] .field-label,
+  :root[lang="zh"] .masthead-meta,
+  :root[lang="zh"] .ticker,
+  :root[lang="zh"] .doc-status,
+  :root[lang="zh"] .docket-meta,
+  :root[lang="zh"] .dispatch-btn .sub,
+  :root[lang="zh"] .caveat strong,
+  :root[lang="zh"] .select-btn,
+  :root[lang="zh"] .segments button,
+  :root[lang="zh"] .doc-remove,
+  :root[lang="zh"] .doc-name .type,
+  :root[lang="zh"] footer,
+  :root[lang="zh"] .toast {
+    text-transform: none;
+    letter-spacing: 0.08em;
+  }
+  :root[lang="zh"] .kicker { letter-spacing: 0.35em; }
+  :root[lang="zh"] .select-btn { font-size: 13px; letter-spacing: 0.1em; }
+  :root[lang="zh"] .segments button { font-size: 12.5px; letter-spacing: 0.05em; padding: 13px 8px; }
+  :root[lang="zh"] .lang-switch button { letter-spacing: 0.02em; }
+
+  :root[lang="ru"] .segments button { letter-spacing: 0.12em; }
+
+  /* Font size adjustments for longer Russian / Georgian labels */
+  :root[lang="ru"] .segments button,
+  :root[lang="ka"] .segments button {
+    padding: 13px 8px;
+  }
+
+  /* ────────────────────────────────────────────────────────────────
+     Responsive
+     ──────────────────────────────────────────────────────────────── */
+  @media (max-width: 980px) {
+    .ticker, .masthead, main, footer, .page-frame { padding-left: 24px; padding-right: 24px; }
+    .page-frame { inset: 12px; }
+    .masthead { padding-top: 24px; padding-bottom: 28px; }
+    .seal { display: none; }
+    .bureau { grid-template-columns: 1fr; gap: 32px; }
+    .doc-row { grid-template-columns: 36px 1fr 120px; gap: 10px; font-size: 14px; }
+    .doc-row .doc-status, .doc-row .doc-bar { grid-column: 2 / -1; }
+    .doc-row .doc-status { margin-top: 4px; }
+    .doc-size { grid-column: 2 / -1; font-size: 11.5px; }
+    .dispatch-btn { min-width: 100%; font-size: 28px; padding: 18px 24px; }
+    footer { padding: 28px 24px 40px; }
+    .toast-wrap { right: 16px; top: 80px; }
+  }
+
+  @media (max-width: 620px) {
+    .ticker { font-size: 9px; padding: 16px 20px 0; gap: 10px; }
+    .ticker .dots { min-width: 12px; }
+    .ticker .right { gap: 0.8em; }
+    .title { font-size: 22vw; }
+    .masthead-meta { flex-direction: column; gap: 4px; }
+    .masthead-meta span + span::before { display: none; }
+    .doc-row { grid-template-columns: 28px 1fr 90px; }
+    .lang-switch button { padding: 4px 6px; font-size: 9.5px; min-width: 26px; }
+  }
+
+  /* Accessibility */
+  :focus-visible {
+    outline: 2px solid var(--stamp);
+    outline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="page-frame" aria-hidden="true"></div>
+
+<div class="ticker reveal">
+  <span><span data-i18n="legajo">Despacho · File Nº</span> <span id="folio">—</span></span>
+  <span class="dots"></span>
+  <span class="right">
+    <span id="clock">--:--:--</span>
+    <div class="lang-switch" id="lang-switch" role="tablist" aria-label="Language">
+      <button type="button" data-lang="en" class="on">EN</button>
+      <button type="button" data-lang="ka">ქა</button>
+      <button type="button" data-lang="ru">RU</button>
+      <button type="button" data-lang="es">ES</button>
+      <button type="button" data-lang="zh">中</button>
+    </div>
+  </span>
+</div>
+
+<header class="masthead">
+  <div class="seal reveal d1" aria-hidden="true">
+    <svg viewBox="0 0 110 110">
+      <defs>
+        <path id="circ" d="M 55 55 m -42 0 a 42 42 0 1 1 84 0 a 42 42 0 1 1 -84 0" fill="none"/>
+      </defs>
+      <circle cx="55" cy="55" r="52" fill="none" stroke="#9e2b2b" stroke-width="1.2"/>
+      <circle cx="55" cy="55" r="46" fill="none" stroke="#9e2b2b" stroke-width="0.7"/>
+      <circle cx="55" cy="55" r="18" fill="none" stroke="#9e2b2b" stroke-width="0.8"/>
+      <text fill="#9e2b2b" font-family="JetBrains Mono, monospace" font-size="7" letter-spacing="1.4">
+        <textPath href="#circ" startOffset="0">· DESPACHO · COMPRESSION BUREAU · EST. 2026 ·</textPath>
+      </text>
+      <text x="55" y="59" text-anchor="middle" fill="#9e2b2b" font-family="Instrument Serif, serif" font-size="14" font-style="italic">§</text>
+    </svg>
+  </div>
+
+  <div class="kicker reveal d1" data-i18n="kicker">A Paper-Trimming Bureau</div>
+  <h1 class="title reveal d2" translate="no">Despacho<span class="tail">§</span></h1>
+  <p class="tagline reveal d3">
+    <span class="flourish">❋</span>
+    <span data-i18n="tagline">Fit oversized scans into ministry-sized envelopes</span>
+    <span class="flourish">❋</span>
+  </p>
+  <div class="masthead-meta reveal d4">
+    <span data-i18n="meta_1">Runs Entirely In Your Browser</span>
+    <span data-i18n="meta_2">No Uploads, No Accounts</span>
+    <span data-i18n="meta_3">Passport · Empadronamiento · Seguros · Fact</span>
+  </div>
+</header>
+
+<main>
+  <section class="bureau">
+    <label class="drop-zone reveal d3" id="drop" for="file-input">
+      <span class="corner tl"></span>
+      <span class="corner tr"></span>
+      <span class="corner bl"></span>
+      <span class="corner br"></span>
+      <span class="perforation"></span>
+
+      <div class="stamp-layer" id="stamps" aria-hidden="true"></div>
+
+      <div class="drop-content">
+        <div class="envelope" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.3">
+            <rect x="6" y="14" width="52" height="38" rx="1"/>
+            <path d="M6 16 L32 36 L58 16"/>
+            <path d="M6 52 L24 34 M58 52 L40 34" stroke-width="0.9"/>
+            <circle cx="51" cy="24" r="3.5" fill="#9e2b2b" stroke="none"/>
+          </svg>
+        </div>
+        <h2 class="drop-heading" data-i18n-html="drop_heading">Drop papers <em>here</em></h2>
+        <p class="drop-body" data-i18n="drop_body">
+          Passport scans, forms, certificates — all trimmed to the per-file
+          ceiling set at right.  Nothing is uploaded; every operation runs
+          inside this page.
+        </p>
+        <span class="select-btn" data-i18n="select_btn">Select from computer</span>
+        <input type="file" id="file-input" multiple accept=".pdf,application/pdf,.jpg,.jpeg,.png,image/jpeg,image/png,image/webp">
+
+        <div class="drop-hint">
+          <span class="dot"></span>
+          <span data-i18n="drop_hint_accepts">Accepts PDF · JPEG · PNG · WEBP</span>
+          <span class="dot" style="background: var(--stamp)"></span>
+          <span data-i18n="drop_hint_local">Processed locally</span>
+        </div>
+      </div>
+    </label>
+
+    <aside class="orders reveal d4">
+      <div class="orders-head">
+        <span class="num">§ 01</span>
+        <span data-i18n="orders_heading">Processing orders</span>
+      </div>
+
+      <div class="field">
+        <label class="field-label">
+          <span data-i18n="label_cap">Per-file ceiling</span>
+          <span class="hint" data-i18n="hint_cap">// max size each</span>
+        </label>
+        <div class="segments" data-name="cap" role="radiogroup">
+          <button type="button" data-val="3">3&nbsp;MB</button>
+          <button type="button" data-val="5" class="on">5&nbsp;MB</button>
+          <button type="button" data-val="10">10&nbsp;MB</button>
+          <button type="button" data-val="20">20&nbsp;MB</button>
+        </div>
+        <p class="field-note" data-i18n-html="note_cap">Spanish NIE intake caps at 5&nbsp;MB/file by default.</p>
+      </div>
+
+      <div class="field">
+        <label class="field-label">
+          <span data-i18n="label_grade">Grade</span>
+          <span class="hint" data-i18n="hint_grade">// quality vs size</span>
+        </label>
+        <div class="segments" data-name="grade" role="radiogroup">
+          <button type="button" data-val="lean" data-i18n="grade_lean">Lean</button>
+          <button type="button" data-val="balanced" class="on" data-i18n="grade_balanced">Balanced</button>
+          <button type="button" data-val="crisp" data-i18n="grade_crisp">Crisp</button>
+        </div>
+        <p class="field-note" data-i18n-html="note_grade">Balanced matches the <em>Ghostscript /ebook</em> profile — text legible, photos smooth.</p>
+      </div>
+
+      <div class="field">
+        <label class="field-label">
+          <span data-i18n="label_color">Colour</span>
+          <span class="hint" data-i18n="hint_color">// for scans</span>
+        </label>
+        <div class="segments" data-name="color" role="radiogroup">
+          <button type="button" data-val="color" class="on" data-i18n="color_color">Colour</button>
+          <button type="button" data-val="gray" data-i18n="color_gray">Grayscale</button>
+        </div>
+        <p class="field-note" data-i18n="note_color">Grayscale shrinks files further; losing the passport-photo colour may not matter for text-only documents.</p>
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-i18n="label_delivery">Delivery</label>
+        <div class="segments" data-name="delivery" role="radiogroup">
+          <button type="button" data-val="zip" class="on" data-i18n="delivery_zip">ZIP bundle</button>
+          <button type="button" data-val="one" data-i18n="delivery_one">One-by-one</button>
+        </div>
+      </div>
+
+      <div class="caveat">
+        <strong data-i18n="caveat_title">§ House rules</strong>
+        <span data-i18n-html="caveat_body">Files never leave your machine.  The bureau reads them, rasterises each page at the chosen DPI, re-encodes as JPEG, then rebuilds a lean PDF — <em>same profile</em> as the command-line tool that civil servants themselves rely on.</span>
+      </div>
+    </aside>
+  </section>
+
+  <section class="docket" id="docket" hidden>
+    <div class="docket-head">
+      <h3><span class="num">§ 02</span> <span data-i18n-html="docket_heading">The <em>docket</em></span></h3>
+      <div class="docket-meta" id="docket-meta"></div>
+    </div>
+    <ol class="docket-list" id="docket-list"></ol>
+  </section>
+
+  <section class="dispatch-bar" id="dispatch-bar" hidden>
+    <p class="dispatch-note">
+      <span data-i18n="dispatch_note_pre">All files listed will be trimmed to the ceiling, stamped, and bundled. Expect roughly </span><span id="eta">—</span><span data-i18n="dispatch_note_post"> per document.</span>
+    </p>
+    <button class="dispatch-btn" id="process" disabled>
+      <span class="label">
+        <span id="dispatch-label" data-i18n="dispatch_label">Stamp &amp; Dispatch</span><span class="dot-spinner"></span>
+        <span class="sub" data-i18n="dispatch_sub">Compress and download the bundle</span>
+      </span>
+      <span class="arrow">→</span>
+    </button>
+  </section>
+</main>
+
+<footer>
+  <div data-i18n-html="footer_1"><em>Despacho</em> · a quiet compression bureau for paperwork that has grown too fat.</div>
+  <div data-i18n="footer_2">Works entirely offline · PDF.js · pdf-lib · JSZip</div>
+</footer>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+<script>
+/* ──────────────────────────────────────────────────────────────
+   DESPACHO – client-side compression engine + i18n
+   ────────────────────────────────────────────────────────────── */
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+
+const { PDFDocument } = PDFLib;
+
+const $  = (q, el = document) => el.querySelector(q);
+const $$ = (q, el = document) => [...el.querySelectorAll(q)];
+
+/* ──────────────────────────────────────────────────────────────
+   I18N DICTIONARIES
+   ────────────────────────────────────────────────────────────── */
+
+const I18N = {
+  en: {
+    lang_name: "English",
+    legajo: "Despacho · File Nº",
+    kicker: "A Paper-Trimming Bureau",
+    tagline: "Fit oversized scans into ministry-sized envelopes",
+    meta_1: "Runs Entirely In Your Browser",
+    meta_2: "No Uploads, No Accounts",
+    meta_3: "Passport · Empadronamiento · Seguros · Fact",
+    drop_heading: 'Drop papers <em>here</em>',
+    drop_body: "Passport scans, forms, certificates — all trimmed to the per-file ceiling set at right. Nothing is uploaded; every operation runs inside this page.",
+    select_btn: "Select from computer",
+    drop_hint_accepts: "Accepts PDF · JPEG · PNG · WEBP",
+    drop_hint_local: "Processed locally",
+    orders_heading: "Processing orders",
+    label_cap: "Per-file ceiling",
+    hint_cap: "// max size each",
+    note_cap: "Spanish NIE intake caps at 5&nbsp;MB/file by default.",
+    label_grade: "Grade",
+    hint_grade: "// quality vs size",
+    note_grade: "Balanced matches the <em>Ghostscript /ebook</em> profile — text legible, photos smooth.",
+    grade_lean: "Lean",
+    grade_balanced: "Balanced",
+    grade_crisp: "Crisp",
+    label_color: "Colour",
+    hint_color: "// for scans",
+    color_color: "Colour",
+    color_gray: "Grayscale",
+    note_color: "Grayscale shrinks files further; losing the passport-photo colour may not matter for text-only documents.",
+    label_delivery: "Delivery",
+    delivery_zip: "ZIP bundle",
+    delivery_one: "One-by-one",
+    caveat_title: "§ House rules",
+    caveat_body: "Files never leave your machine. The bureau reads them, rasterises each page at the chosen DPI, re-encodes as JPEG, then rebuilds a lean PDF — <em>same profile</em> as the command-line tool that civil servants themselves rely on.",
+    docket_heading: 'The <em>docket</em>',
+    docket_files: (n) => n === 1 ? "1 file" : `${n} files`,
+    docket_incoming: "incoming",
+    docket_after: "after compression",
+    status_queued: "Queued",
+    status_busy: "Processing",
+    status_done: "Dispatched",
+    status_error: "Failed",
+    doc_remove: "Remove",
+    dispatch_note_pre: "All files listed will be trimmed to the ceiling, stamped, and bundled. Expect roughly ",
+    dispatch_note_post: " per document.",
+    dispatch_label: "Stamp & Dispatch",
+    dispatch_sub: "Compress and download the bundle",
+    dispatch_done: "Download again",
+    dispatch_busy: "Compressing",
+    footer_1: "<em>Despacho</em> · a quiet compression bureau for paperwork that has grown too fat.",
+    footer_2: "Works entirely offline · PDF.js · pdf-lib · JSZip",
+    toast_received: (n) => n === 1 ? "1 file received" : `${n} files received`,
+    toast_under_cap: (n, cap) => n === 1 ? `1 file under ${cap} MB` : `All ${n} files under ${cap} MB`,
+    toast_over_cap: (n) => n === 1 ? "1 file still over cap — try a lower grade" : `${n} files still over cap — try a lower grade`,
+    toast_nothing: "Nothing could be compressed",
+    toast_rejected: (name) => `Rejected: ${name} — not a PDF or image`,
+    confirm_clear: "Clear the docket?",
+    browser_old: "Your browser is too old for the bureau",
+    eta_instant: "instant",
+    eta_seconds: (n) => n === 1 ? "1 second" : `${n} seconds`,
+    stamp_received: "RECEIVED",
+    stamp_filed:    "FILED",
+    stamp_stamped:  "STAMPED",
+  },
+
+  ka: {
+    lang_name: "ქართული",
+    legajo: "Despacho · საქმე №",
+    kicker: "ქაღალდების შემჭიდროვების ბიურო",
+    tagline: "დიდ სკანერებს ვარგებთ სამინისტროს ზომას",
+    meta_1: "მუშაობს მხოლოდ თქვენს ბრაუზერში",
+    meta_2: "არც ატვირთვა, არც ანგარიში",
+    meta_3: "პასპორტი · Empadronamiento · Seguros · Fact",
+    drop_heading: 'ჩააგდეთ საბუთები <em>აქ</em>',
+    drop_body: "პასპორტის სკანერები, ფორმები, ცნობები — ყოველი ფაილი მოერგება მარჯვნივ მითითებულ ზომას. ფაილები არსად იგზავნება; ყველაფერი ხდება ამ გვერდზე.",
+    select_btn: "კომპიუტერიდან არჩევა",
+    drop_hint_accepts: "მიიღება PDF · JPEG · PNG · WEBP",
+    drop_hint_local: "მუშავდება ადგილობრივად",
+    orders_heading: "დამუშავების ბრძანებები",
+    label_cap: "ერთი ფაილის ზღვარი",
+    hint_cap: "// მაქსიმალური ზომა",
+    note_cap: "ესპანური NIE-ს ფანჯარა ჩვეულებრივ ღებულობს 5&nbsp;MB/ფაილი.",
+    label_grade: "ხარისხი",
+    hint_grade: "// ხარისხი თუ ზომა",
+    note_grade: "„დაბალანსებული\" შეესაბამება <em>Ghostscript /ebook</em> პროფილს — ტექსტი იკითხება, ფოტოები გლუვია.",
+    grade_lean: "მსუბუქი",
+    grade_balanced: "დაბალანსებული",
+    grade_crisp: "ცხადი",
+    label_color: "ფერი",
+    hint_color: "// სკანერებისთვის",
+    color_color: "ფერადი",
+    color_gray: "შავ-თეთრი",
+    note_color: "შავ-თეთრი მეტად ამცირებს ფაილებს; პასპორტის ფოტოს ფერი ხშირად არ არის საჭირო ტექსტური საბუთებისთვის.",
+    label_delivery: "მიწოდება",
+    delivery_zip: "ZIP პაკეტი",
+    delivery_one: "სათითაოდ",
+    caveat_title: "§ წესები",
+    caveat_body: "ფაილები თქვენს კომპიუტერს არ ტოვებენ. ბიურო კითხულობს მათ, თითოეულ გვერდს ახორციელებს არჩეული DPI-ით, გარდაქმნის JPEG-ად და ხელახლა ქმნის მსუბუქ PDF-ს — <em>იგივე პროფილი</em>, რომელსაც თვითონ მოხელეები იყენებენ.",
+    docket_heading: 'დოკუმენტების <em>სია</em>',
+    docket_files: (n) => `${n} ფაილი`,
+    docket_incoming: "შემომავალი",
+    docket_after: "შეკუმშვის შემდეგ",
+    status_queued: "რიგში",
+    status_busy: "მუშავდება",
+    status_done: "გაიგზავნა",
+    status_error: "შეცდომა",
+    doc_remove: "წაშლა",
+    dispatch_note_pre: "ქვემოთ ჩამოთვლილი ფაილები შეიკუმშება, დაიბეჭდება და შეიფუთება. დაახლოებით ",
+    dispatch_note_post: " ერთ საბუთზე.",
+    dispatch_label: "დაბეჭდე და გააგზავნე",
+    dispatch_sub: "შეკუმშე და ჩამოტვირთე პაკეტი",
+    dispatch_done: "ხელახლა ჩამოტვირთვა",
+    dispatch_busy: "იკუმშება",
+    footer_1: "<em>Despacho</em> · წყნარი ბიურო, რომელიც გასუქებულ ქაღალდებს აპრიალებს.",
+    footer_2: "მუშაობს სრულიად ოფლაინ · PDF.js · pdf-lib · JSZip",
+    toast_received: (n) => `მიღებულია ${n} ფაილი`,
+    toast_under_cap: (n, cap) => `ყველა ${n} ფაილი ${cap}&nbsp;MB-ზე ნაკლებია`,
+    toast_over_cap: (n) => `${n} ფაილი კვლავ ზღვრის მიღმაა — სცადეთ უფრო მსუბუქი ხარისხი`,
+    toast_nothing: "შეკუმშვა ვერ მოხერხდა",
+    toast_rejected: (name) => `უარყოფილია: ${name} — არ არის PDF ან სურათი`,
+    confirm_clear: "სიის გასუფთავება?",
+    browser_old: "თქვენი ბრაუზერი ძალიან ძველია ბიუროსთვის",
+    eta_instant: "მყისიერად",
+    eta_seconds: (n) => `${n} წამი`,
+    stamp_received: "მიღებული",
+    stamp_filed:    "რეგისტრ.",
+    stamp_stamped:  "დაბეჭდილი",
+  },
+
+  ru: {
+    lang_name: "Русский",
+    legajo: "Despacho · Дело №",
+    kicker: "Бюро сжатия документов",
+    tagline: "Подгоняем объёмные сканы под министерские рамки",
+    meta_1: "Работает полностью в вашем браузере",
+    meta_2: "Без загрузок, без аккаунтов",
+    meta_3: "Паспорт · Empadronamiento · Seguros · Fact",
+    drop_heading: 'Бросайте документы <em>сюда</em>',
+    drop_body: "Сканы паспортов, формы, справки — всё приводится к выбранному справа пределу. Ничего никуда не отправляется: всё работает внутри этой страницы.",
+    select_btn: "Выбрать с компьютера",
+    drop_hint_accepts: "Принимается PDF · JPEG · PNG · WEBP",
+    drop_hint_local: "Обработка локальная",
+    orders_heading: "Параметры обработки",
+    label_cap: "Лимит на файл",
+    hint_cap: "// максимум каждого",
+    note_cap: "Испанский NIE по умолчанию принимает до 5&nbsp;МБ/файл.",
+    label_grade: "Качество",
+    hint_grade: "// качество или размер",
+    note_grade: "«Сбалансированное» соответствует профилю <em>Ghostscript /ebook</em> — текст читается, фото сглажены.",
+    grade_lean: "Компактно",
+    grade_balanced: "Средне",
+    grade_crisp: "Чётко",
+    label_color: "Цвет",
+    hint_color: "// для сканов",
+    color_color: "Цветной",
+    color_gray: "Ч/Б",
+    note_color: "Чёрно-белый режим ещё сильнее уменьшает файлы; для текстовых документов цвет паспортного фото часто не важен.",
+    label_delivery: "Доставка",
+    delivery_zip: "Архив ZIP",
+    delivery_one: "Поодиночке",
+    caveat_title: "§ Внутренний порядок",
+    caveat_body: "Файлы не покидают вашу машину. Бюро читает их, растрирует каждую страницу с выбранным DPI, перекодирует в JPEG и собирает облегчённый PDF — <em>тот же профиль</em>, на который полагаются сами чиновники.",
+    docket_heading: 'Список <em>документов</em>',
+    docket_files: (n) => `${n} файл(ов)`,
+    docket_incoming: "входящих",
+    docket_after: "после сжатия",
+    status_queued: "В очереди",
+    status_busy: "Обрабатывается",
+    status_done: "Отправлено",
+    status_error: "Ошибка",
+    doc_remove: "Удалить",
+    dispatch_note_pre: "Все перечисленные файлы будут сжаты, проштампованы и упакованы. Примерно ",
+    dispatch_note_post: " на документ.",
+    dispatch_label: "Штамп и отправка",
+    dispatch_sub: "Сжать и скачать архив",
+    dispatch_done: "Скачать ещё раз",
+    dispatch_busy: "Сжимается",
+    footer_1: "<em>Despacho</em> · тихое бюро, которое приводит разросшиеся бумаги в порядок.",
+    footer_2: "Работает полностью офлайн · PDF.js · pdf-lib · JSZip",
+    toast_received: (n) => `Получено файлов: ${n}`,
+    toast_under_cap: (n, cap) => `Все ${n} файл(ов) в пределах ${cap}&nbsp;МБ`,
+    toast_over_cap: (n) => `${n} файл(ов) всё ещё выше лимита — попробуйте компактнее`,
+    toast_nothing: "Ничего не удалось сжать",
+    toast_rejected: (name) => `Отклонено: ${name} — не PDF и не изображение`,
+    confirm_clear: "Очистить список?",
+    browser_old: "Ваш браузер слишком стар для бюро",
+    eta_instant: "мгновенно",
+    eta_seconds: (n) => `${n} сек`,
+    stamp_received: "ПОЛУЧЕНО",
+    stamp_filed:    "ПРИНЯТО",
+    stamp_stamped:  "ОФОРМЛЕНО",
+  },
+
+  es: {
+    lang_name: "Español",
+    legajo: "Despacho · Legajo Nº",
+    kicker: "Oficina de Despacho Documental",
+    tagline: "Escaneos voluminosos, ajustados a sobres ministeriales",
+    meta_1: "Funciona íntegramente en tu navegador",
+    meta_2: "Sin subidas, sin cuentas",
+    meta_3: "Pasaporte · Empadronamiento · Seguros · Fact",
+    drop_heading: 'Deposite papeles <em>aquí</em>',
+    drop_body: "Escaneos de pasaporte, formularios, certificados — todo recortado al tope por archivo fijado a la derecha. Nada se sube; cada operación corre dentro de esta página.",
+    select_btn: "Elegir del ordenador",
+    drop_hint_accepts: "Acepta PDF · JPEG · PNG · WEBP",
+    drop_hint_local: "Procesado localmente",
+    orders_heading: "Órdenes de procesamiento",
+    label_cap: "Tope por archivo",
+    hint_cap: "// máx. por archivo",
+    note_cap: "La ventanilla del NIE admite hasta 5&nbsp;MB/archivo por defecto.",
+    label_grade: "Grado",
+    hint_grade: "// calidad vs tamaño",
+    note_grade: "«Equilibrado» corresponde al perfil <em>Ghostscript /ebook</em> — texto legible, fotos suaves.",
+    grade_lean: "Ligero",
+    grade_balanced: "Equilibrado",
+    grade_crisp: "Nítido",
+    label_color: "Color",
+    hint_color: "// para escaneos",
+    color_color: "Color",
+    color_gray: "Gris",
+    note_color: "El gris reduce aún más el peso; la foto del pasaporte en color puede no importar para documentos de sólo texto.",
+    label_delivery: "Entrega",
+    delivery_zip: "Paquete ZIP",
+    delivery_one: "Uno a uno",
+    caveat_title: "§ Reglas de la casa",
+    caveat_body: "Los archivos no salen de tu máquina. El despacho los lee, rasteriza cada página al DPI elegido, re-codifica en JPEG y reconstruye un PDF ligero — <em>el mismo perfil</em> en el que confían los propios funcionarios.",
+    docket_heading: 'El <em>expediente</em>',
+    docket_files: (n) => n === 1 ? "1 archivo" : `${n} archivos`,
+    docket_incoming: "entrantes",
+    docket_after: "tras compresión",
+    status_queued: "En espera",
+    status_busy: "Procesando",
+    status_done: "Despachado",
+    status_error: "Fallo",
+    doc_remove: "Quitar",
+    dispatch_note_pre: "Todos los archivos listados se recortarán, sellarán y empaquetarán. Cuente ",
+    dispatch_note_post: " por documento, aproximadamente.",
+    dispatch_label: "Sellar y Despachar",
+    dispatch_sub: "Comprimir y descargar el paquete",
+    dispatch_done: "Descargar de nuevo",
+    dispatch_busy: "Comprimiendo",
+    footer_1: "<em>Despacho</em> · una oficina tranquila para papeleo que ha engordado demasiado.",
+    footer_2: "Funciona sin conexión · PDF.js · pdf-lib · JSZip",
+    toast_received: (n) => n === 1 ? "1 archivo recibido" : `${n} archivos recibidos`,
+    toast_under_cap: (n, cap) => n === 1 ? `1 archivo bajo ${cap} MB` : `Los ${n} archivos por debajo de ${cap} MB`,
+    toast_over_cap: (n) => n === 1 ? "1 archivo sigue por encima del tope — pruebe un grado inferior" : `${n} archivos siguen por encima del tope — pruebe un grado inferior`,
+    toast_nothing: "Nada pudo comprimirse",
+    toast_rejected: (name) => `Rechazado: ${name} — no es PDF ni imagen`,
+    confirm_clear: "¿Limpiar el expediente?",
+    browser_old: "Tu navegador es demasiado antiguo para este despacho",
+    eta_instant: "instantáneo",
+    eta_seconds: (n) => n === 1 ? "1 segundo" : `${n} segundos`,
+    stamp_received: "RECIBIDO",
+    stamp_filed:    "EN TRÁMITE",
+    stamp_stamped:  "REGISTRADO",
+  },
+
+  zh: {
+    lang_name: "中文",
+    legajo: "Despacho · 卷宗 №",
+    kicker: "文件压缩事务所",
+    tagline: "将超大扫描件裁剪到官方可接受的大小",
+    meta_1: "完全在浏览器中运行",
+    meta_2: "无需上传，无需账号",
+    meta_3: "护照 · Empadronamiento · Seguros · Fact",
+    drop_heading: '将文件<em>放入此处</em>',
+    drop_body: "护照扫描件、表单、证书——全部按右侧设定的单文件上限进行压缩。文件不会上传，所有操作都在本页面内完成。",
+    select_btn: "从电脑选择",
+    drop_hint_accepts: "支持 PDF · JPEG · PNG · WEBP",
+    drop_hint_local: "本地处理",
+    orders_heading: "处理设置",
+    label_cap: "单文件上限",
+    hint_cap: "// 每个文件最大",
+    note_cap: "西班牙 NIE 默认每个文件最多 5&nbsp;MB。",
+    label_grade: "质量等级",
+    hint_grade: "// 质量或体积",
+    note_grade: "「平衡」对应 <em>Ghostscript /ebook</em> 配置——文字清晰，照片平滑。",
+    grade_lean: "精简",
+    grade_balanced: "平衡",
+    grade_crisp: "高清",
+    label_color: "颜色",
+    hint_color: "// 用于扫描件",
+    color_color: "彩色",
+    color_gray: "黑白",
+    note_color: "黑白模式进一步减小文件；对于纯文字文件，护照照片的颜色往往无关紧要。",
+    label_delivery: "输出方式",
+    delivery_zip: "ZIP 打包",
+    delivery_one: "逐个下载",
+    caveat_title: "§ 规则",
+    caveat_body: "文件不会离开您的电脑。事务所读取文件，按所选 DPI 栅格化每一页，重新编码为 JPEG，然后重建精简的 PDF——<em>与公务员自己使用的命令行工具相同的配置</em>。",
+    docket_heading: '<em>清单</em>',
+    docket_files: (n) => `${n} 个文件`,
+    docket_incoming: "待处理",
+    docket_after: "压缩后",
+    status_queued: "排队中",
+    status_busy: "处理中",
+    status_done: "已完成",
+    status_error: "失败",
+    doc_remove: "移除",
+    dispatch_note_pre: "所有列出的文件都将被压缩、盖章并打包。每份文件约需 ",
+    dispatch_note_post: "。",
+    dispatch_label: "盖章并打包",
+    dispatch_sub: "压缩并下载打包文件",
+    dispatch_done: "再次下载",
+    dispatch_busy: "正在压缩",
+    footer_1: "<em>Despacho</em> · 一家安静的事务所，替膨胀的纸质档案瘦身。",
+    footer_2: "完全离线工作 · PDF.js · pdf-lib · JSZip",
+    toast_received: (n) => `已接收 ${n} 个文件`,
+    toast_under_cap: (n, cap) => `全部 ${n} 个文件都在 ${cap}&nbsp;MB 以内`,
+    toast_over_cap: (n) => `${n} 个文件仍超出上限——请尝试更低的质量等级`,
+    toast_nothing: "无法压缩",
+    toast_rejected: (name) => `已拒绝：${name} — 不是 PDF 或图片`,
+    confirm_clear: "清空清单？",
+    browser_old: "您的浏览器版本过旧，无法使用本事务所",
+    eta_instant: "立即",
+    eta_seconds: (n) => `${n} 秒`,
+    stamp_received: "已接收",
+    stamp_filed:    "已登记",
+    stamp_stamped:  "已盖章",
+  },
+};
+
+const SUPPORTED_LANGS = ["en", "ka", "ru", "es", "zh"];
+
+function detectInitialLang() {
+  const saved = localStorage.getItem("despacho:lang");
+  if (saved && SUPPORTED_LANGS.includes(saved)) return saved;
+  const nav = (navigator.language || "en").toLowerCase();
+  if (nav.startsWith("ka")) return "ka";
+  if (nav.startsWith("ru")) return "ru";
+  if (nav.startsWith("es")) return "es";
+  if (nav.startsWith("zh")) return "zh";
+  return "en";
+}
+
+let currentLang = "en";
+
+function t(key, ...args) {
+  const d = I18N[currentLang] || I18N.en;
+  const v = d[key] ?? I18N.en[key];
+  if (typeof v === "function") return v(...args);
+  return v ?? key;
+}
+
+function applyLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  localStorage.setItem("despacho:lang", lang);
+
+  $$("[data-i18n]").forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  $$("[data-i18n-html]").forEach(el => {
+    el.innerHTML = t(el.dataset.i18nHtml);
+  });
+  $$(".lang-switch button").forEach(b => {
+    b.classList.toggle("on", b.dataset.lang === lang);
+    b.setAttribute("aria-selected", b.dataset.lang === lang ? "true" : "false");
+  });
+
+  renderDocket();
+  updateEta();
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Helpers
+   ────────────────────────────────────────────────────────────── */
+
+function fmtBytes(n) {
+  if (!Number.isFinite(n) || n <= 0) return "0 B";
+  const u = ["B", "KB", "MB", "GB"];
+  const i = Math.min(u.length - 1, Math.floor(Math.log10(n) / 3));
+  const v = n / Math.pow(1024, i);
+  return `${v.toFixed(v < 10 && i > 0 ? 2 : 1)} ${u[i]}`;
+}
+
+function randomFolio() {
+  const n = Math.floor(Math.random() * 9999).toString().padStart(4, "0");
+  const l = "ABCDEFGHIJKLMNPQRSTUVXYZ";
+  return `${n}/${l[Math.floor(Math.random() * l.length)]}`;
+}
+
+function classifyType(file) {
+  const mime = file.type || "";
+  if (mime === "application/pdf" || /\.pdf$/i.test(file.name)) return "pdf";
+  if (/^image\//.test(mime) || /\.(jpe?g|png|webp)$/i.test(file.name)) return "img";
+  return "unknown";
+}
+
+function loadImage(src) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload  = () => res(img);
+    img.onerror = () => rej(new Error("image could not be decoded"));
+    img.src = src;
+  });
+}
+
+function canvasToJpeg(canvas, quality) {
+  return new Promise((res, rej) =>
+    canvas.toBlob(
+      b => (b ? res(b) : rej(new Error("canvas encode failed"))),
+      "image/jpeg",
+      quality
+    )
+  );
+}
+
+function toGrayscale(canvas) {
+  const ctx = canvas.getContext("2d");
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const g = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114) | 0;
+    d[i] = d[i + 1] = d[i + 2] = g;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Compression engine
+   ────────────────────────────────────────────────────────────── */
+
+const GRADES = {
+  lean:     { dpi: 120, quality: 0.60, imgMaxDim: 1800, imgQuality: 0.68, minDpi: 90,  minQ: 0.42 },
+  balanced: { dpi: 150, quality: 0.72, imgMaxDim: 2400, imgQuality: 0.80, minDpi: 110, minQ: 0.50 },
+  crisp:    { dpi: 190, quality: 0.82, imgMaxDim: 3000, imgQuality: 0.88, minDpi: 140, minQ: 0.60 },
+};
+
+async function compressPdf(file, params, onProgress) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const task  = pdfjsLib.getDocument({ data: bytes, disableFontFace: true });
+  const pdf   = await task.promise;
+  const out   = await PDFDocument.create();
+
+  out.setProducer("Despacho");
+  out.setCreator("Despacho");
+  out.setCreationDate(new Date());
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const natural = page.getViewport({ scale: 1 });
+    const scale = params.dpi / 72;
+    const viewport = page.getViewport({ scale });
+
+    const canvas = document.createElement("canvas");
+    canvas.width  = Math.max(1, Math.floor(viewport.width));
+    canvas.height = Math.max(1, Math.floor(viewport.height));
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    await page.render({ canvasContext: ctx, viewport, intent: "print" }).promise;
+
+    if (params.grayscale) toGrayscale(canvas);
+
+    const jpeg = await canvasToJpeg(canvas, params.quality);
+    const jpegBytes = new Uint8Array(await jpeg.arrayBuffer());
+    const emb = await out.embedJpg(jpegBytes);
+
+    const newPage = out.addPage([natural.width, natural.height]);
+    newPage.drawImage(emb, { x: 0, y: 0, width: natural.width, height: natural.height });
+
+    canvas.width = 0; canvas.height = 0;
+    onProgress?.(i / pdf.numPages);
+  }
+
+  const saved = await out.save({ useObjectStreams: true });
+  await pdf.cleanup?.();
+  await pdf.destroy?.();
+  return new Blob([saved], { type: "application/pdf" });
+}
+
+async function compressImage(file, params, onProgress) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await loadImage(url);
+    let { width, height } = img;
+    const longest = Math.max(width, height);
+    if (longest > params.imgMaxDim) {
+      const r = params.imgMaxDim / longest;
+      width  = Math.round(width * r);
+      height = Math.round(height * r);
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, 0, 0, width, height);
+    if (params.grayscale) toGrayscale(canvas);
+    onProgress?.(0.5);
+    const jpeg = await canvasToJpeg(canvas, params.imgQuality);
+    onProgress?.(1);
+    canvas.width = 0; canvas.height = 0;
+    return jpeg;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function adaptiveCompress(file, kind, grade, capBytes, grayscale, onProgress) {
+  const profile = { ...GRADES[grade], grayscale };
+  let attempt = 0;
+  let lastBlob = null;
+
+  while (true) {
+    const attemptIdx = attempt;
+    const sub = (p) => onProgress?.(Math.min(0.95, (attemptIdx + p) / (attemptIdx + 1.3)));
+
+    const blob = kind === "pdf"
+      ? await compressPdf(file, profile, sub)
+      : await compressImage(file, profile, sub);
+
+    lastBlob = blob;
+    if (blob.size <= capBytes) break;
+
+    profile.dpi = Math.max(profile.minDpi, Math.round(profile.dpi * 0.88));
+    profile.quality = Math.max(profile.minQ, profile.quality - 0.08);
+    profile.imgMaxDim = Math.max(1200, Math.round(profile.imgMaxDim * 0.9));
+    profile.imgQuality = Math.max(profile.minQ, profile.imgQuality - 0.06);
+
+    attempt += 1;
+    if (attempt >= 6) break;
+    if (profile.dpi <= profile.minDpi && profile.quality <= profile.minQ) break;
+  }
+
+  onProgress?.(1);
+  return { blob: lastBlob, profile };
+}
+
+/* ──────────────────────────────────────────────────────────────
+   App state + UI
+   ────────────────────────────────────────────────────────────── */
+
+const state = {
+  docs: [],
+  settings: { cap: 5, grade: "balanced", color: "color", delivery: "zip" },
+  running: false,
+};
+
+const drop        = $("#drop");
+const fileInput   = $("#file-input");
+const docket      = $("#docket");
+const docketList  = $("#docket-list");
+const docketMeta  = $("#docket-meta");
+const dispatchBar = $("#dispatch-bar");
+const processBtn  = $("#process");
+const etaText     = $("#eta");
+const stampLayer  = $("#stamps");
+const toasts      = $("#toasts");
+const dispatchLbl = $("#dispatch-label");
+
+/* Segmented controls */
+$$(".segments").forEach(group => {
+  const name = group.dataset.name;
+  group.addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    [...group.children].forEach(c => c.classList.remove("on"));
+    b.classList.add("on");
+    state.settings[name] = b.dataset.val;
+    updateEta();
+  });
+});
+
+/* Language switch */
+$("#lang-switch").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  applyLang(b.dataset.lang);
+});
+
+/* File input */
+fileInput.addEventListener("change", e => ingest(e.target.files));
+
+/* Drag & drop */
+["dragenter","dragover","drop"].forEach(ev =>
+  document.addEventListener(ev, e => e.preventDefault())
+);
+let dragDepth = 0;
+["dragenter","dragover"].forEach(ev =>
+  drop.addEventListener(ev, () => { dragDepth++; drop.classList.add("dragging"); })
+);
+["dragleave","drop"].forEach(ev =>
+  drop.addEventListener(ev, () => {
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) drop.classList.remove("dragging");
+  })
+);
+drop.addEventListener("drop", e => { ingest(e.dataTransfer.files); });
+
+/* Ingestion */
+function ingest(fileList) {
+  if (!fileList || !fileList.length) return;
+  const files = [...fileList];
+  const newOnes = [];
+  files.forEach(f => {
+    const kind = classifyType(f);
+    if (kind === "unknown") {
+      toast(t("toast_rejected", f.name), "warn");
+      return;
+    }
+    const existing = state.docs.find(d =>
+      d.file.name === f.name &&
+      d.file.size === f.size &&
+      d.file.lastModified === f.lastModified
+    );
+    if (existing) return;
+
+    const doc = {
+      id: crypto.randomUUID?.() || String(Math.random()),
+      file: f,
+      kind,
+      status: "queued",
+      originalSize: f.size,
+      compressedBlob: null,
+      compressedSize: null,
+      progress: 0,
+      error: null,
+    };
+    state.docs.push(doc);
+    newOnes.push(doc);
+  });
+
+  if (newOnes.length) {
+    stampArrival(newOnes.length);
+    toast(t("toast_received", newOnes.length), "good");
+  }
+
+  fileInput.value = "";
+  renderDocket();
+}
+
+/* Stamp arrival animation */
+function stampArrival(count) {
+  const keys = ["stamp_received", "stamp_filed", "stamp_stamped"];
+  for (let i = 0; i < Math.min(count, 3); i++) {
+    const label = t(keys[Math.floor(Math.random() * keys.length)]);
+    const num = Math.floor(Math.random() * 9000 + 1000);
+    const el = document.createElement("div");
+    el.className = "stamp";
+    el.style.left = `${15 + Math.random() * 60}%`;
+    el.style.top  = `${10 + Math.random() * 70}%`;
+    el.style.animationDelay = `${i * 0.12}s`;
+    el.innerHTML = `
+      <svg viewBox="0 0 148 148">
+        <defs><path id="s${num}_${i}" d="M 74 74 m -52 0 a 52 52 0 1 1 104 0 a 52 52 0 1 1 -104 0" fill="none"/></defs>
+        <circle cx="74" cy="74" r="62" fill="none" stroke="#9e2b2b" stroke-width="2.4"/>
+        <circle cx="74" cy="74" r="54" fill="none" stroke="#9e2b2b" stroke-width="1"/>
+        <text fill="#9e2b2b" font-family="JetBrains Mono, Noto Sans Georgian, Noto Serif SC, monospace" font-size="9" letter-spacing="1.5" font-weight="600">
+          <textPath href="#s${num}_${i}" startOffset="0">· ${label} · DESPACHO · Nº ${num} ·</textPath>
+        </text>
+        <text x="74" y="78" text-anchor="middle" fill="#9e2b2b" font-family="Instrument Serif, Noto Serif, serif" font-size="22" font-style="italic">§</text>
+        <text x="74" y="100" text-anchor="middle" fill="#9e2b2b" font-family="JetBrains Mono, monospace" font-size="7" letter-spacing="1.2">${new Date().toISOString().slice(0,10)}</text>
+      </svg>
+    `;
+    stampLayer.appendChild(el);
+    setTimeout(() => el.remove(), 3600);
+  }
+}
+
+/* Docket rendering */
+function renderDocket() {
+  if (!state.docs.length) {
+    docket.hidden = true;
+    dispatchBar.hidden = true;
+    return;
+  }
+  docket.hidden = false;
+  dispatchBar.hidden = false;
+
+  docketList.innerHTML = "";
+  state.docs.forEach((d, i) => {
+    const li = document.createElement("li");
+    li.className = "doc-row";
+    li.dataset.id = d.id;
+    if (d.status === "done") li.classList.add("state-done");
+    if (d.status === "error") li.classList.add("state-err");
+
+    const typeLabel = d.kind === "pdf"
+      ? "PDF"
+      : (d.file.name.split(".").pop() || "IMG").toUpperCase();
+
+    const pct = (d.compressedSize && d.originalSize)
+      ? 100 * (1 - d.compressedSize / d.originalSize)
+      : null;
+    const capBytes = state.settings.cap * 1024 * 1024;
+    const overCap = d.compressedSize && d.compressedSize > capBytes;
+
+    const statusTxt = d.error
+      ? d.error
+      : d.status === "busy" ? t("status_busy")
+      : d.status === "done" ? t("status_done")
+      : d.status === "error" ? t("status_error")
+      : t("status_queued");
+    const statusCls = d.status === "busy" ? "busy"
+      : d.status === "done" ? "ok"
+      : d.status === "error" ? "err"
+      : "";
+
+    const sizeHtml = d.compressedSize !== null
+      ? `<span class="arrow">→</span><span class="after">${fmtBytes(d.compressedSize)}</span>
+         <span class="pct ${overCap ? "over" : ""}">−${pct.toFixed(0)}%</span>`
+      : "";
+
+    li.innerHTML = `
+      <div class="doc-idx">${String(i + 1).padStart(2, "0")}</div>
+      <div class="doc-name"><span class="type">${typeLabel}</span>${escapeHtml(d.file.name)}</div>
+      <div class="doc-size">
+        <span class="before">${fmtBytes(d.originalSize)}</span>
+        ${sizeHtml}
+      </div>
+      <div class="doc-status ${statusCls}">
+        <span class="pip"></span>
+        <span>${escapeHtml(statusTxt)}</span>
+      </div>
+      <div class="doc-bar"><span style="width:${(d.progress || 0) * 100}%"></span></div>
+    `;
+    if (d.status === "queued") {
+      const rem = document.createElement("button");
+      rem.className = "doc-remove";
+      rem.textContent = t("doc_remove");
+      rem.setAttribute("aria-label", `${t("doc_remove")} ${d.file.name}`);
+      rem.addEventListener("click", (e) => {
+        e.stopPropagation();
+        state.docs = state.docs.filter(x => x.id !== d.id);
+        renderDocket();
+      });
+      li.querySelector(".doc-status").appendChild(rem);
+    }
+    docketList.appendChild(li);
+  });
+
+  const total = state.docs.reduce((s, d) => s + d.originalSize, 0);
+  const doneBytes = state.docs.filter(d => d.status === "done").reduce((s, d) => s + (d.compressedSize || 0), 0);
+  const anyDone = state.docs.some(d => d.status === "done");
+  const allDone = state.docs.every(d => d.status === "done");
+
+  docketMeta.innerHTML = `
+    <span>${t("docket_files", state.docs.length)}</span>
+    <span><span class="value">${fmtBytes(total)}</span> ${escapeHtml(t("docket_incoming"))}</span>
+    ${anyDone ? `<span><span class="value">${fmtBytes(doneBytes)}</span> ${escapeHtml(t("docket_after"))}</span>` : ""}
+  `;
+
+  processBtn.disabled = !state.docs.length || state.running;
+  dispatchLbl.textContent = state.running
+    ? t("dispatch_busy")
+    : (allDone && anyDone ? t("dispatch_done") : t("dispatch_label"));
+
+  updateEta();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+}
+
+function updateEta() {
+  const pending = state.docs.filter(d => d.status !== "done" && d.status !== "error");
+  if (!pending.length) {
+    etaText.textContent = t("eta_instant");
+    return;
+  }
+  const grade = state.settings.grade;
+  const perFile = grade === "crisp" ? 6 : grade === "balanced" ? 4 : 3;
+  const secs = Math.max(1, Math.round(pending.length * perFile));
+  etaText.textContent = t("eta_seconds", secs);
+}
+
+function toast(msg, kind = "") {
+  const el = document.createElement("div");
+  el.className = `toast ${kind}`;
+  el.innerHTML = msg; // some translations include &nbsp;
+  toasts.appendChild(el);
+  setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 400); }, 2800);
+}
+
+/* Dispatch */
+processBtn.addEventListener("click", async () => {
+  if (state.running) return;
+  const pending = state.docs.filter(d => d.status !== "done" && d.status !== "error");
+
+  if (pending.length === 0) {
+    const doneDocs = state.docs.filter(d => d.status === "done" && d.compressedBlob);
+    if (doneDocs.length) return deliver(doneDocs);
+    return;
+  }
+
+  state.running = true;
+  processBtn.classList.add("busy");
+  processBtn.disabled = true;
+  dispatchLbl.textContent = t("dispatch_busy");
+
+  const capBytes = state.settings.cap * 1024 * 1024;
+  const grayscale = state.settings.color === "gray";
+
+  for (const d of pending) {
+    d.status = "busy";
+    d.progress = 0;
+    renderDocket();
+    try {
+      const { blob, profile } = await adaptiveCompress(
+        d.file, d.kind, state.settings.grade, capBytes, grayscale,
+        (p) => { d.progress = p; updateBar(d); }
+      );
+      d.compressedBlob = blob;
+      d.compressedSize = blob.size;
+      d.profile = profile;
+      d.status = "done";
+      d.progress = 1;
+    } catch (err) {
+      console.error(err);
+      d.status = "error";
+      d.error = err.message || "failure";
+    }
+    renderDocket();
+  }
+
+  state.running = false;
+  processBtn.classList.remove("busy");
+
+  const doneDocs = state.docs.filter(d => d.status === "done" && d.compressedBlob);
+  if (doneDocs.length) {
+    const over = doneDocs.filter(d => d.compressedSize > capBytes);
+    if (over.length) {
+      toast(t("toast_over_cap", over.length), "warn");
+    } else {
+      toast(t("toast_under_cap", doneDocs.length, state.settings.cap), "good");
+    }
+    await deliver(doneDocs);
+  } else {
+    toast(t("toast_nothing"), "warn");
+    processBtn.disabled = false;
+  }
+
+  renderDocket();
+});
+
+function updateBar(d) {
+  const row = docketList.querySelector(`[data-id="${d.id}"]`);
+  if (!row) return;
+  const bar = row.querySelector(".doc-bar > span");
+  if (bar) bar.style.width = `${(d.progress || 0) * 100}%`;
+}
+
+/* Deliver */
+function swapExt(name, ext) {
+  const dot = name.lastIndexOf(".");
+  const base = dot >= 0 ? name.slice(0, dot) : name;
+  return `${base}.${ext}`;
+}
+function outputName(d) {
+  if (d.kind === "pdf") return d.file.name;
+  return swapExt(d.file.name, "jpg");
+}
+
+async function deliver(docs) {
+  if (state.settings.delivery === "one" || docs.length === 1) {
+    docs.forEach((d, i) => setTimeout(() => downloadBlob(d.compressedBlob, outputName(d)), i * 200));
+    return;
+  }
+
+  const zip = new JSZip();
+  docs.forEach(d => zip.file(outputName(d), d.compressedBlob));
+
+  const stamp = new Date().toISOString().replace("T", " ").slice(0, 16);
+  const ledger = [
+    "DESPACHO · Compression ledger",
+    "─".repeat(56),
+    `Issued      · ${stamp}`,
+    `Grade       · ${state.settings.grade}`,
+    `Per-file    · ≤ ${state.settings.cap} MB`,
+    `Colour      · ${state.settings.color}`,
+    `Files       · ${docs.length}`,
+    "",
+    "─".repeat(56),
+    ...docs.map((d, i) => {
+      const pct = 100 * (1 - d.compressedSize / d.originalSize);
+      return `${String(i + 1).padStart(2, "0")}  ${outputName(d)}\n` +
+             `    ${fmtBytes(d.originalSize).padEnd(10)} → ${fmtBytes(d.compressedSize).padEnd(10)}  (−${pct.toFixed(0)}%)`;
+    }),
+    "",
+    "─".repeat(56),
+    "Processed locally.  Nothing transmitted.",
+  ].join("\n");
+  zip.file("_despacho-ledger.txt", ledger);
+
+  const blob = await zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+    compressionOptions: { level: 6 },
+  });
+  const name = `despacho-${new Date().toISOString().slice(0, 10)}.zip`;
+  downloadBlob(blob, name);
+}
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+/* Clock + folio */
+function pad(n) { return String(n).padStart(2, "0"); }
+function tickClock() {
+  const d = new Date();
+  $("#clock").textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+setInterval(tickClock, 1000); tickClock();
+$("#folio").textContent = randomFolio();
+
+/* Esc to clear */
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && state.docs.length && !state.running) {
+    if (confirm(t("confirm_clear"))) {
+      state.docs = [];
+      renderDocket();
+    }
+  }
+});
+
+/* Sanity */
+(function sanity() {
+  if (!window.Promise || !window.File || !window.crypto) {
+    setTimeout(() => toast(t("browser_old"), "warn"), 500);
+  }
+})();
+
+/* ── Boot ── */
+applyLang(detectInitialLang());
+</script>
+</body>
+</html>
