@@ -1625,9 +1625,17 @@ async function compressPdf(file, params, onProgress) {
   const pdf   = await task.promise;
   const out   = await PDFDocument.create();
 
-  out.setProducer("Despacho");
-  out.setCreator("Despacho");
-  out.setCreationDate(new Date());
+  // Neutral, unremarkable metadata — reads as an ordinary Windows print-to-PDF export.
+  // No trace of Despacho, no identifying fingerprint.
+  out.setProducer("Microsoft: Print To PDF");
+  out.setCreator("Microsoft Word");
+  out.setTitle("");
+  out.setAuthor("");
+  out.setSubject("");
+  out.setKeywords([]);
+  const _now = new Date();
+  out.setCreationDate(_now);
+  out.setModificationDate(_now);
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
@@ -2059,34 +2067,12 @@ async function deliver(docs) {
   const zip = new JSZip();
   docs.forEach(d => zip.file(outputName(d), d.compressedBlob));
 
-  const stamp = new Date().toISOString().replace("T", " ").slice(0, 16);
-  const ledger = [
-    "DESPACHO · Compression ledger",
-    "─".repeat(56),
-    `Issued      · ${stamp}`,
-    `Grade       · ${state.settings.grade}`,
-    `Per-file    · ≤ ${state.settings.cap} MB`,
-    `Colour      · ${state.settings.color}`,
-    `Files       · ${docs.length}`,
-    "",
-    "─".repeat(56),
-    ...docs.map((d, i) => {
-      const pct = 100 * (1 - d.compressedSize / d.originalSize);
-      return `${String(i + 1).padStart(2, "0")}  ${outputName(d)}\n` +
-             `    ${fmtBytes(d.originalSize).padEnd(10)} → ${fmtBytes(d.compressedSize).padEnd(10)}  (−${pct.toFixed(0)}%)`;
-    }),
-    "",
-    "─".repeat(56),
-    "Processed locally.  Nothing transmitted.",
-  ].join("\n");
-  zip.file("_despacho-ledger.txt", ledger);
-
   const blob = await zip.generateAsync({
     type: "blob",
     compression: "DEFLATE",
     compressionOptions: { level: 6 },
   });
-  const name = `despacho-${new Date().toISOString().slice(0, 10)}.zip`;
+  const name = `documents-${new Date().toISOString().slice(0, 10)}.zip`;
   downloadBlob(blob, name);
 }
 
